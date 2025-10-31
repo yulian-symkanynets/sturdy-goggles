@@ -24,6 +24,82 @@ h1 {
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
 }
 
+.work-session-section {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.work-session-section h2 {
+  color: #333;
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+}
+
+.timer-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.timer-display {
+  font-size: 3.5rem;
+  font-weight: 700;
+  font-family: 'Courier New', monospace;
+  color: #999;
+  background: #f8f9fa;
+  padding: 30px 50px;
+  border-radius: 12px;
+  border: 3px solid #e0e0e0;
+  min-width: 280px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.timer-display.active {
+  color: #667eea;
+  border-color: #667eea;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+  box-shadow: 0 0 20px rgba(102, 126, 234, 0.2);
+}
+
+.timer-controls {
+  display: flex;
+  gap: 10px;
+}
+
+.start-btn {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  padding: 14px 40px;
+  font-size: 18px;
+}
+
+.start-btn:hover {
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+}
+
+.stop-btn {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  padding: 14px 40px;
+  font-size: 18px;
+}
+
+.stop-btn:hover {
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+}
+
+.session-status {
+  color: #28a745;
+  font-weight: 600;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .add-section {
   background: white;
   border-radius: 12px;
@@ -181,8 +257,21 @@ button:active {
   }
 
   .add-section,
-  .category-section {
+  .category-section,
+  .work-session-section {
     padding: 20px;
+  }
+
+  .timer-display {
+    font-size: 2.5rem;
+    padding: 20px 30px;
+    min-width: 220px;
+  }
+
+  .start-btn,
+  .stop-btn {
+    padding: 12px 30px;
+    font-size: 16px;
   }
 
   .item {
