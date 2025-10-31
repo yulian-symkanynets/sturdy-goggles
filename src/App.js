@@ -22,7 +22,13 @@ function App() {
   useEffect(() => {
     const savedItems = localStorage.getItem('knowledgeItems');
     if (savedItems) {
-      setKnowledgeItems(JSON.parse(savedItems));
+      try {
+        setKnowledgeItems(JSON.parse(savedItems));
+      } catch (error) {
+        console.error('Failed to parse saved items:', error);
+        // Clear corrupted data
+        localStorage.removeItem('knowledgeItems');
+      }
     }
   }, []);
 
@@ -39,7 +45,7 @@ function App() {
     }
 
     const newItem = {
-      id: Date.now(),
+      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       category: formData.category,
       title: formData.title,
       description: formData.description,
