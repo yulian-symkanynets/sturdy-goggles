@@ -77,7 +77,8 @@ function HomePage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <h1>📚 My Knowledge Base</h1>
+        <div className="hero-icon">📚</div>
+        <h1>My Knowledge Base</h1>
         <p className="hero-subtitle">Your personal repository for coding problems, algorithms, and tech notes</p>
         
         <div className="search-bar">

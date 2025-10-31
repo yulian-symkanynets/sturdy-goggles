@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Navigation from './components/Navigation';
 import HomePage from './pages/HomePage';
 import CategoryPage from './pages/CategoryPage';
 import ItemDetailPage from './pages/ItemDetailPage';
@@ -10,14 +11,17 @@ import './App.css';
 function App() {
   return (
     <Router>
-      <div className="app-container">
-        <WorkTimer />
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/category/:slug" element={<CategoryPage />} />
-          <Route path="/item/:slug" element={<ItemDetailPage />} />
-          <Route path="/add" element={<AddItemPage />} />
-        </Routes>
+      <div className="app-wrapper">
+        <Navigation />
+        <div className="app-container">
+          <WorkTimer />
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/category/:slug" element={<CategoryPage />} />
+            <Route path="/item/:slug" element={<ItemDetailPage />} />
+            <Route path="/add" element={<AddItemPage />} />
+          </Routes>
+        </div>
       </div>
     </Router>
   );
