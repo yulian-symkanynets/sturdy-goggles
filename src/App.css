@@ -118,6 +118,12 @@ h1 {
   margin-bottom: 15px;
 }
 
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
 label {
   display: block;
   color: #555;
@@ -212,17 +218,55 @@ button:active {
   font-size: 1.1rem;
 }
 
-.item-description {
+.item-summary {
   color: #666;
   font-size: 0.9rem;
   line-height: 1.5;
   word-wrap: break-word;
+  margin-bottom: 8px;
+}
+
+.item-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.tag {
+  background: #667eea;
+  color: white;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.item-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.meta-badge {
+  background: #e9ecef;
+  color: #495057;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.meta-badge.difficulty {
+  background: #ffc107;
+  color: #000;
 }
 
 .item-date {
   color: #999;
-  font-size: 0.8rem;
-  margin-top: 5px;
+  font-size: 0.75rem;
 }
 
 .delete-btn {

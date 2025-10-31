@@ -2,20 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import './App.css';
 
-const categoryLabels = {
-  technology: '💻 Technology',
-  leetcode: '🧩 LeetCode Problem',
-  project: '🚀 Pet Project',
-  skill: '✨ Skill',
-  other: '📝 Other'
-};
+// API Configuration
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 function App() {
   const [knowledgeItems, setKnowledgeItems] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [formData, setFormData] = useState({
-    category: '',
+    category_id: '',
     title: '',
-    description: ''
+    summary: '',
+    body: '',
+    tags: '',
+    language: '',
+    difficulty: '',
+    repo_url: ''
   });
   const [workSession, setWorkSession] = useState({
     isActive: false,
@@ -23,18 +24,10 @@ function App() {
     elapsedSeconds: 0
   });
 
-  // Load items from localStorage on mount
+  // Load categories and items from API on mount
   useEffect(() => {
-    const savedItems = localStorage.getItem('knowledgeItems');
-    if (savedItems) {
-      try {
-        setKnowledgeItems(JSON.parse(savedItems));
-      } catch (error) {
-        console.error('Failed to parse saved items:', error);
-        // Clear corrupted data
-        localStorage.removeItem('knowledgeItems');
-      }
-    }
+    fetchCategories();
+    fetchAllItems();
 
     // Load work session from localStorage
     const savedSession = localStorage.getItem('workSession');
@@ -58,10 +51,42 @@ function App() {
     }
   }, []);
 
-  // Save items to localStorage whenever they change
-  useEffect(() => {
-    localStorage.setItem('knowledgeItems', JSON.stringify(knowledgeItems));
-  }, [knowledgeItems]);
+  // Fetch categories from API
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch(`${API_URL}/categories`);
+      const data = await response.json();
+      setCategories(data);
+    } catch (error) {
+      console.error('Failed to fetch categories:', error);
+    }
+  };
+
+  // Fetch all items from API
+  const fetchAllItems = async () => {
+    try {
+      const response = await fetch(`${API_URL}/categories`);
+      const categoriesData = await response.json();
+      
+      const allItems = [];
+      for (const category of categoriesData) {
+        const itemsResponse = await fetch(`${API_URL}/categories/${category.slug}/items`);
+        const itemsData = await itemsResponse.json();
+        if (itemsData.items && itemsData.items.length > 0) {
+          allItems.push(...itemsData.items.map(item => ({
+            ...item,
+            category: category.slug,
+            categoryName: category.name
+          })));
+        }
+      }
+      setKnowledgeItems(allItems);
+    } catch (error) {
+      console.error('Failed to fetch items:', error);
+    }
+  };
+
+
 
   // Save work session to localStorage when isActive or startTime changes (not on every second)
   useEffect(() => {
@@ -90,28 +115,68 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workSession.isActive]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!formData.category || !formData.title) {
+    if (!formData.category_id || !formData.title) {
+      alert('Please fill in at least the title and category');
       return;
     }
 
-    const newItem = {
-      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      category: formData.category,
-      title: formData.title,
-      description: formData.description,
-      date: new Date().toLocaleDateString()
-    };
+    try {
+      const tagsArray = formData.tags ? formData.tags.split(',').map(t => t.trim()).filter(t => t) : [];
+      
+      const response = await fetch(`${API_URL}/items`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...formData,
+          tags: tagsArray,
+          category_id: parseInt(formData.category_id)
+        }),
+      });
 
-    setKnowledgeItems([...knowledgeItems, newItem]);
-    setFormData({ category: '', title: '', description: '' });
+      if (response.ok) {
+        // Refresh items after successful creation
+        await fetchAllItems();
+        setFormData({
+          category_id: '',
+          title: '',
+          summary: '',
+          body: '',
+          tags: '',
+          language: '',
+          difficulty: '',
+          repo_url: ''
+        });
+      } else {
+        const error = await response.json();
+        alert(`Failed to create item: ${error.error}`);
+      }
+    } catch (error) {
+      console.error('Failed to create item:', error);
+      alert('Failed to create item. Please try again.');
+    }
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this item?')) {
-      setKnowledgeItems(knowledgeItems.filter(item => item.id !== id));
+      try {
+        const response = await fetch(`${API_URL}/items/${id}`, {
+          method: 'DELETE',
+        });
+
+        if (response.ok) {
+          await fetchAllItems();
+        } else {
+          alert('Failed to delete item');
+        }
+      } catch (error) {
+        console.error('Failed to delete item:', error);
+        alert('Failed to delete item. Please try again.');
+      }
     }
   };
 
@@ -218,25 +283,23 @@ function App() {
         <h2>Add New Item</h2>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="category">Category</label>
+            <label htmlFor="category_id">Category *</label>
             <select
-              id="category"
-              name="category"
-              value={formData.category}
+              id="category_id"
+              name="category_id"
+              value={formData.category_id}
               onChange={handleInputChange}
               required
             >
               <option value="">Select a category...</option>
-              <option value="technology">💻 Technology</option>
-              <option value="leetcode">🧩 LeetCode Problem</option>
-              <option value="project">🚀 Pet Project</option>
-              <option value="skill">✨ Skill</option>
-              <option value="other">📝 Other</option>
+              {categories.map(cat => (
+                <option key={cat.id} value={cat.id}>{cat.name}</option>
+              ))}
             </select>
           </div>
 
           <div className="form-group">
-            <label htmlFor="title">Title</label>
+            <label htmlFor="title">Title *</label>
             <input
               type="text"
               id="title"
@@ -249,13 +312,79 @@ function App() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="description">Description (Optional)</label>
-            <textarea
-              id="description"
-              name="description"
-              value={formData.description}
+            <label htmlFor="summary">Summary (One-line description)</label>
+            <input
+              type="text"
+              id="summary"
+              name="summary"
+              value={formData.summary}
               onChange={handleInputChange}
-              placeholder="Add details, notes, or links..."
+              placeholder="Brief one-line summary"
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="body">Body (Markdown)</label>
+            <textarea
+              id="body"
+              name="body"
+              value={formData.body}
+              onChange={handleInputChange}
+              placeholder="## Problem&#10;Describe the problem...&#10;&#10;## Solution&#10;Explain your approach...&#10;&#10;```python&#10;# Code here&#10;```"
+              rows="8"
+            />
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="language">Language</label>
+              <input
+                type="text"
+                id="language"
+                name="language"
+                value={formData.language}
+                onChange={handleInputChange}
+                placeholder="e.g., Python, JavaScript"
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="difficulty">Difficulty</label>
+              <select
+                id="difficulty"
+                name="difficulty"
+                value={formData.difficulty}
+                onChange={handleInputChange}
+              >
+                <option value="">Select difficulty...</option>
+                <option value="Easy">Easy</option>
+                <option value="Medium">Medium</option>
+                <option value="Hard">Hard</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="tags">Tags (comma-separated)</label>
+            <input
+              type="text"
+              id="tags"
+              name="tags"
+              value={formData.tags}
+              onChange={handleInputChange}
+              placeholder="e.g., array, hashmap, dynamic-programming"
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="repo_url">Repository URL</label>
+            <input
+              type="url"
+              id="repo_url"
+              name="repo_url"
+              value={formData.repo_url}
+              onChange={handleInputChange}
+              placeholder="https://github.com/username/repo"
             />
           </div>
 
@@ -293,7 +422,7 @@ function App() {
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.4 }}
               >
-                <h3>{categoryLabels[category]}</h3>
+                <h3>{groupedItems[category][0]?.categoryName || category}</h3>
                 <AnimatePresence>
                   {groupedItems[category].map((item) => (
                     <motion.div
@@ -307,10 +436,25 @@ function App() {
                     >
                       <div className="item-content">
                         <div className="item-title">{item.title}</div>
-                        {item.description && (
-                          <div className="item-description">{item.description}</div>
+                        {item.summary && (
+                          <div className="item-summary">{item.summary}</div>
                         )}
-                        <div className="item-date">Added on {item.date}</div>
+                        {item.tags && item.tags.length > 0 && (
+                          <div className="item-tags">
+                            {item.tags.map((tag, idx) => (
+                              <span key={idx} className="tag">{tag}</span>
+                            ))}
+                          </div>
+                        )}
+                        <div className="item-meta">
+                          {item.language && <span className="meta-badge">{item.language}</span>}
+                          {item.difficulty && <span className="meta-badge difficulty">{item.difficulty}</span>}
+                          {item.created_at && (
+                            <span className="item-date">
+                              Added {new Date(item.created_at).toLocaleDateString()}
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <motion.button
                         className="delete-btn"
