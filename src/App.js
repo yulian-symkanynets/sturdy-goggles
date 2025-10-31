@@ -63,15 +63,19 @@ function App() {
     localStorage.setItem('knowledgeItems', JSON.stringify(knowledgeItems));
   }, [knowledgeItems]);
 
-  // Save work session to localStorage whenever it changes
+  // Save work session to localStorage when isActive or startTime changes (not on every second)
   useEffect(() => {
-    localStorage.setItem('workSession', JSON.stringify(workSession));
-  }, [workSession]);
+    const sessionToSave = {
+      isActive: workSession.isActive,
+      startTime: workSession.startTime
+    };
+    localStorage.setItem('workSession', JSON.stringify(sessionToSave));
+  }, [workSession.isActive, workSession.startTime]);
 
   // Timer effect - updates every second when active
   useEffect(() => {
     let interval = null;
-    if (workSession.isActive) {
+    if (workSession.isActive && workSession.startTime) {
       interval = setInterval(() => {
         setWorkSession(prev => ({
           ...prev,
@@ -82,7 +86,9 @@ function App() {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [workSession.isActive, workSession.startTime]);
+    // We intentionally use prev.startTime inside the callback to avoid recreating interval
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workSession.isActive]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
